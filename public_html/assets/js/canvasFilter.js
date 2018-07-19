@@ -1,72 +1,102 @@
 (function () {
 //https://www.html5rocks.com/en/tutorials/canvas/imagefilters/
 
-    /*getImageData holt immer die Daten eines Rechteckes*/
+
     window.canvasFilter = {};
     canvasFilter.objects = {};
+    canvasFilter.range = null;
     canvasFilter.objects.canvas = null;
+
     canvasFilter.mouse = {
-      x:0,
-      y:0, 
-      w:50,
-      h:50
-    };
-    
+        x: 0,
+        y: 0,
+        w: 50,
+        h: 50,
+        down: false
+    };  
+
     canvasFilter.fx = {
-      filter:null,
-      filterOption:null, 
-      src:{}
+        filter: null,
+        filterOption: null,
+        src: null
     };
-    
+
     canvasFilter.image = {};
     canvasFilter.styles = {};
     canvasFilter.filters = {};
     canvasFilter.ctx = null;
-    
-    
-
     canvasFilter.init = function (cfg) {
-        this.objects.canvas = helper.q(cfg.canvas);
+        this.objects.canvas = helper.q(cfg.canvas);        
         this.objects.canvas.width = cfg.width;
         this.objects.canvas.height = cfg.height;
         this.objects.canvas.style.width = cfg.width + 'px';
         this.objects.canvas.style.height = cfg.height + 'px';
+        this.range=helper.q('[data-filter="range"]');
         this.ctx = this.objects.canvas.getContext('2d');
 //        this.ctx.translate(-0.5, -0.5);
+        this.initMouse();
     };
-    canvasFilter.setMousePosition = function(){
-        
+
+    canvasFilter.initMouse = function () {
+        canvasFilter.objects.canvas.addEventListener('mousemove', canvasFilter.setMousePosition);
+        canvasFilter.objects.canvas.addEventListener('mousemove', canvasFilter.paint);
+        canvasFilter.objects.canvas.addEventListener('mousedown', canvasFilter.setMouseDown);
+        canvasFilter.objects.canvas.addEventListener('mouseup', canvasFilter.setMouseUp);
+        canvasFilter.range.addEventListener('change', canvasFilter.setMouseDimensions);
+    };
+
+    canvasFilter.setMouseDown = function () {
+        canvasFilter.mouse.down = true;
+    };
+
+    canvasFilter.setMouseUp = function () {
+        canvasFilter.mouse.down = false;
+    };
+    
+
+    canvasFilter.setMousePosition = function (e) {
+        canvasFilter.mouse.x = e.offsetX;
+        canvasFilter.mouse.y = e.offsetY;
+    };
+    canvasFilter.setMouseDimensions = function(){
+        var val=this.range.value;
+        this.mouse.h = val;
+        this.mouse.w = val;
     }
-    canvasFilter.setFx = function(){
-        if(canvasFilter.fx.src!==null){
-            canvasFilter.fx.src.classList.remove('.active');
+
+    canvasFilter.setFx = function () {
+        if (canvasFilter.fx.src !== null) {
+            canvasFilter.fx.src.classList.remove('active');
         }
         canvasFilter.fx.filter = this.getAttribute('data-filter');
         canvasFilter.fx.filterOption = this.getAttribute('data-filter-option');
-        canvasFilter.fx.src = this;  
-        canvasFilter.fx.src.classList.add('.active');
-        console.log(canvasFilter.fx);
+        canvasFilter.fx.src = this;
+
+        canvasFilter.fx.src.classList.add('active');
     };
-    canvasFilter.setBtnActive = function(){
+
+    canvasFilter.setBtnActive = function () {
         var el = helper.q('.active');
-        if(el!==null){
-            el.classList.remove('.active');
+        if (el !== null) {
+            el.classList.remove('active');
         }
         this.classList.add('active');
     };
 
-    canvasFilter.setFilter = function () {
-        var c, imgData, type, option;
-        c = canvasFilter.objects.canvas;
-        
-        imgData = canvasFilter.getPixel(0, 0, c.width, c.height);
-        //Filter type
-        type = this.getAttribute('data-filter');
-        //option
-        option = this.getAttribute('data-filter-option');
-        imgData = canvasFilter.filters[type](imgData, option);
+    canvasFilter.paint = function () {
+        var imgData, x, y;
+        var cf = canvasFilter;
+        var m = cf.mouse;
+        var fx = cf.fx;
+        if (fx.filter === null || cf.mouse.down === false)
+            return false;
+        //Berechnung Mauszeiger in der Mitte der Pinselfläche
+        x = m.x - m.w / 2;
+        y = m.y - m.h / 2;
 
-        canvasFilter.setPixel(imgData, 0, 0);
+        imgData = cf.getPixel(x, y, m.w, m.h);//canvasFilter.mouse
+        imgData = cf.filters[fx.filter](imgData, fx.filterOption);//canvasFilter.fx
+        cf.setPixel(imgData, x, y);//canvasFilter.mouse
     };
 
     canvasFilter.filters.reset = function () {
@@ -85,7 +115,7 @@
     };
 
     canvasFilter.filters.noise = function (arg) {
-        var i, max, factor = 40, rand;
+        var i, max, factor = 2, rand;
         for (i = 0, max = arg.data.length; i < max; i += 4) {
             rand = (0.5 - Math.random() * factor);
             arg.data[i] += rand;
@@ -94,7 +124,7 @@
         }
         return arg;
     };
-    
+
     canvasFilter.filters.sepia = function (arg) {
         var i, max, r, g, b;
         for (i = 0, max = arg.data.length; i < max; i += 4) {
@@ -109,7 +139,7 @@
         }
         return arg;
     };
-    
+
     canvasFilter.filters.invert = function (arg) {
         var i, max;
         for (i = 0, max = arg.data.length; i < max; i += 4) {

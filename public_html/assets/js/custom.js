@@ -3,8 +3,8 @@
 
     canvasFilter.init({
         canvas: 'canvas',
-        width: 600,
-        height: 400
+        width: 700,
+        height: 500
     });
 
     canvasFilter.setImage('assets/images/bild3.jpg', 0, 0);
