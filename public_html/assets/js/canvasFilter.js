@@ -8,8 +8,8 @@
     canvasFilter.mouse = {
       x:0,
       y:0, 
-      w:0,
-      h:0
+      w:50,
+      h:50
     };
     
     canvasFilter.fx = {
@@ -22,6 +22,8 @@
     canvasFilter.styles = {};
     canvasFilter.filters = {};
     canvasFilter.ctx = null;
+    
+    
 
     canvasFilter.init = function (cfg) {
         this.objects.canvas = helper.q(cfg.canvas);
@@ -31,6 +33,26 @@
         this.objects.canvas.style.height = cfg.height + 'px';
         this.ctx = this.objects.canvas.getContext('2d');
 //        this.ctx.translate(-0.5, -0.5);
+    };
+    canvasFilter.setMousePosition = function(){
+        
+    }
+    canvasFilter.setFx = function(){
+        if(canvasFilter.fx.src!==null){
+            canvasFilter.fx.src.classList.remove('.active');
+        }
+        canvasFilter.fx.filter = this.getAttribute('data-filter');
+        canvasFilter.fx.filterOption = this.getAttribute('data-filter-option');
+        canvasFilter.fx.src = this;  
+        canvasFilter.fx.src.classList.add('.active');
+        console.log(canvasFilter.fx);
+    };
+    canvasFilter.setBtnActive = function(){
+        var el = helper.q('.active');
+        if(el!==null){
+            el.classList.remove('.active');
+        }
+        this.classList.add('active');
     };
 
     canvasFilter.setFilter = function () {

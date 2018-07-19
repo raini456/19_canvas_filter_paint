@@ -16,3 +16,7 @@ div#filter > div {
     display: flex;
     justify-content: space-between;
 }
+.filterActive{
+    color:#fff;
+    background-color:#b21f2d;
+}
